@@ -4,6 +4,7 @@ const { MongoClient } = require('mongodb');
 
 let englishWords = null
 let themes = null
+let users = null
 
 const mongoConnect = async () => {
   const uri = "mongodb+srv://Julia2222:Julia2222@cluster0.reril.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
