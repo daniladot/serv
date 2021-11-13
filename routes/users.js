@@ -1,6 +1,9 @@
 var express = require('express');
 const {MongoClient} = require("mongodb");
 var router = express.Router();
+const bcrypt = require('bcrypt');
+var jwt = require('jsonwebtoken');
+const fs = require("fs");
 
 let users = null
 
@@ -31,12 +34,32 @@ const createEndpoints = () => {
 
     router.get('/', function (req, res, next) {
         const usersRes = users.find()
-        res.json(usersRes);
+        const token = jwt.sign({
+            exp: Math.floor(Date.now() / 1000) + (60 * 60),
+            data: 'danil'
+        }, 'secret');;
+        // console.log(token)
+        res.json(token);
     });
+
+    router.post('/new-user-check', async function (req, res, next) {
+        let check = await users.findOne({email: req.body.email})
+        if (await bcrypt.compareSync(req.body.pass, check.pass)) {
+            const token = jwt.sign({
+                exp: Math.floor(Date.now() / 1000) + (60 * 60),
+                data: 'foobar'
+            }, 'secret');
+            // console.log(token)
+            await users.updateOne({email: req.body.email}, {$set: {token: token}})
+            res.json(token);
+        }
+    })
 
     router.post('/new-user', async function (req, res, next) {
         // console.log(req.body)
         // res.json( req.body)
+
+
         const check = await users.find({email: req.body.email}).toArray()
         console.log(check)
         if (!check.length) {
@@ -49,11 +72,13 @@ const createEndpoints = () => {
             if (!req.body.pass)
                 res.json({status: 'incorrectly pass', numStatus: 440});
             if (checkUserEmail(req.body.email) && checkUserName(req.body.name) && checkUserAge(req.body.age) && req.body.pass) {
+                const salt = bcrypt.genSaltSync(10);
+
                 users.insertOne({
                     name: req.body.name,
                     age: req.body.age,
                     email: req.body.email,
-                    pass: req.body.pass,
+                    pass: await bcrypt.hash(req.body.pass, salt).then((hash) => hash),
                     timestamp: Date.now()
                 })
                 res.json({status: 'user added successfully', numStatus: 200});

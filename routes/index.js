@@ -35,6 +35,16 @@ const createEndpoints = () => {
         .catch(err => console.error(`Failed to find documents: ${err}`))
     res.json(response);
   })
+  router.get("/dishes", async (req, res) => {
+    const response = await englishWords.find({theme: 'dishes'}).toArray()
+        .catch(err => console.error(`Failed to find documents: ${err}`))
+    res.json(response);
+  })
+  router.get("/home", async (req, res) => {
+    const response = await englishWords.find({theme: 'home'}).toArray()
+        .catch(err => console.error(`Failed to find documents: ${err}`))
+    res.json(response);
+  })
   router.get("/themes", async (req, res) => {
     const response = await themes.find().toArray()
         .catch(err => console.error(`Failed to find documents: ${err}`))
